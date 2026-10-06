@@ -1,2 +1,3 @@
 # killteam-tracker
-Kill Team Game (and history) tracker.
+Kill Team games tracker.
+TUP - Rosario
