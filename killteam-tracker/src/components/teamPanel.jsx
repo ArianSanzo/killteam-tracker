@@ -18,28 +18,31 @@ function TeamPanel(){
       save: "5+",
     },
   ];
-return(
     <section className="panel">
         <header className="roaster_head">
-            <img src="" alt="" className="raveners img" />
+            <img src="" alt="" className="team_img" />
             <h2>RAVENERS</h2>
             <p>tyranids</p>
         </header>
-        <div className="operatives-list">
-        <h3>Operativos</h3>
-
-        {operatives.map((operative) => (
-          <article className="operative-card" key={operative.id}>
-            <h4>{operative.name}</h4>
-
-            <p>Heridas: {operative.wounds}</p>
-            <p>Movimiento: {operative.movement}</p>
-            <p>Ataques: {operative.attacks}</p>
-            <p>Salvación: {operative.save}</p>
+      <div className="operatives-list">
+        <div className="stats">
+          <span>operativo</span>
+          <span>W</span>
+          <span>M</span>
+          <span>A</span>
+          <span>S</span>
+        </div>
+        {operatives.map((operative)=>(
+          <article className="columna_op" key={operative.id}>
+            <strong>{operative.name}</strong>
+            <span>{operative.wounds}</span>
+            <span>{operative.movement}</span>
+            <span>{operative.attacks}</span>
+            <span>{operative.save}</span>
           </article>
         ))}
       </div>
     </section>
-);
+
 }
 export default TeamPanel;

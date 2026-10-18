@@ -6,14 +6,14 @@
   max-width: 600px;
 }
 
-.roaster-heading {
+.roaster_head {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
 }
 
-.team-image {
+.team_img {
   width: 120px;
   height: 120px;
   object-fit: contain;
@@ -29,4 +29,44 @@
   margin: 0;
   color: #b5c5d4;
   font-size: 14px;
+}
+
+
+.operatives-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stats,
+.columna_op {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(4, minmax(35px, 1fr));
+  align-items: center;
+  gap: 8px;
+}
+
+.stats {
+  color: #b5c5d4;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 10px;
+  border-bottom: 1px solid #46515e;
+  text-align: center;
+}
+
+.stats span:first-child {
+  text-align: left;
+}
+
+.columna_op {
+  background-color: #2b3642;
+  padding: 12px 10px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.columna_op strong {
+  text-align: left;
+  overflow-wrap: anywhere;
 }
