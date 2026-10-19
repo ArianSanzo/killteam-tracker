@@ -18,6 +18,7 @@ function TeamPanel(){
       save: "5+",
     },
   ];
+  return(
     <section className="panel">
         <header className="roaster_head">
             <img src="" alt="" className="team_img" />
@@ -43,6 +44,6 @@ function TeamPanel(){
         ))}
       </div>
     </section>
-
+  )
 }
 export default TeamPanel;
