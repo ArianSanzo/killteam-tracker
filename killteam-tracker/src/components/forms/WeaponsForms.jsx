@@ -46,7 +46,7 @@ export default function AddWeapon({ onWeaponAdded }) {
 
     return (
         <section>
-            <h2>Agregar arma</h2>
+            <h2>Agregar Arma</h2>
 
             <form onSubmit={handleAddWeapon}>
                 <input
