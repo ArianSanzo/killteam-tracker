@@ -1,5 +1,7 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router";
+
 export default function AddOperative({ onOperativeAdded }) {
   const [name, setName] = useState("");
   const [wounds, setWounds] = useState("");
@@ -13,35 +15,41 @@ export default function AddOperative({ onOperativeAdded }) {
   const handleChangeName = (e) => {
     setName(e.target.value);
   };
+
   const handleChangeWounds = (e) => {
     setWounds(e.target.value);
   };
+
   const handleChangeMovement = (e) => {
     setMovement(e.target.value);
   };
+
   const handleChangeApl = (e) => {
     setApl(e.target.value);
   };
+
   const handleChangeImage = (e) => {
     setImage(e.target.value);
   };
+
   const handleChangeSave = (e) => {
     setSave(e.target.value);
   };
 
   const handleAddOperative = (event) => {
     event.preventDefault();
+
     const operative = {
       name,
-      wounds,
-        movement: parseInt(amount, 10),
-      apl: parseInt(value, 10),
+      wounds: parseInt(wounds, 10),
+      movement: parseInt(movement, 10),
+      apl: parseInt(apl, 10),
       image,
       save,
-
-
     };
+
     onOperativeAdded(operative);
+
     setName("");
     setWounds("");
     setMovement("");
@@ -49,6 +57,7 @@ export default function AddOperative({ onOperativeAdded }) {
     setImage("");
     setSave("");
   };
+
   return (
     <section>
       <h2>Agregar Operative</h2>
@@ -60,28 +69,39 @@ export default function AddOperative({ onOperativeAdded }) {
           placeholder="Nombre"
           onChange={handleChangeName}
           value={name}
+          required
         />
+
         <input
           className="border border-gray-300 rounded-lg px-3 py-2 m-2"
-          type="text"
-          placeholder="vida"
+          type="number"
+          placeholder="Vida"
           onChange={handleChangeWounds}
-          value={value}
+          value={wounds}
+          min="1"
+          required
         />
+
         <input
           className="border border-gray-300 rounded-lg px-3 py-2 m-2"
-          type="text"
-          placeholder="movimiento"
+          type="number"
+          placeholder="Movimiento"
           onChange={handleChangeMovement}
-          value={value}
+          value={movement}
+          min="1"
+          required
         />
+
         <input
           className="border border-gray-300 rounded-lg px-3 py-2 m-2"
-          type="text"
-          placeholder="apl"
+          type="number"
+          placeholder="APL"
           onChange={handleChangeApl}
-          value={value}
+          value={apl}
+          min="1"
+          required
         />
+
         <input
           className="border border-gray-300 rounded-lg px-3 py-2 m-2"
           type="text"
@@ -89,17 +109,21 @@ export default function AddOperative({ onOperativeAdded }) {
           onChange={handleChangeImage}
           value={image}
         />
+
         <input
           className="border border-gray-300 rounded-lg px-3 py-2 m-2"
           type="text"
-          placeholder="salvacion"
+          placeholder="Salvación"
           onChange={handleChangeSave}
-          value={value}
+          value={save}
+          required
         />
+
         <div className="flex gap-2">
           <button type="submit" className="bg-green-300">
             Agregar Operative
           </button>
+
           <button
             type="button"
             className="bg-red-300"
