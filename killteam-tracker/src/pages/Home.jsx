@@ -1,4 +1,4 @@
-const Dashboard = () => {
+const Home = () => {
     return (
         <div>
             <h1>KillTeam App</h1>
@@ -6,4 +6,4 @@ const Dashboard = () => {
 )
 }
 
-export default Dashboard;
+export default Home;
