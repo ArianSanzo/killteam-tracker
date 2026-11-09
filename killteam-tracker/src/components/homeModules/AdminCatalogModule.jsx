@@ -63,18 +63,18 @@ export default function AdminCatalogModule() {
     catch (err) { setError(err.message); }
   };
 
-  return <main className="space-y-4">
-    <h2>Administración de catálogos</h2>
+  return <main className="admin-page">
+    <span className="eyebrow">Herramientas de administración</span><h2 className="page-title">Catálogos</h2>
     {error && <p role="alert">{error}</p>}
     <label>Tipo de contenido <select className="ml-2 border p-2" value={catalog} onChange={(e) => { setCatalog(e.target.value); setForm(empty(resources[e.target.value])); setEditing(null); }}>{Object.entries(resources).map(([key, value]) => <option key={key} value={key}>{value.title}</option>)}</select></label>
-    <form className="grid gap-3 rounded border p-4 sm:grid-cols-2" onSubmit={submit}><h3 className="sm:col-span-2">{editing ? "Editar" : "Crear"}: {config.title.slice(0, -1)}</h3>
+    <form className="section-card catalog-form" onSubmit={submit}><h3>{editing ? "Editar" : "Crear"}: {config.title.slice(0, -1)}</h3>
       {config.fields.map(({ key, label, type = "text", relation, multiple }) => <label key={key} className="grid gap-1">{label}
         {relation ? <select className="border p-2" multiple={multiple} required={!multiple} value={form[key]} onChange={(e) => setForm({ ...form, [key]: multiple ? Array.from(e.target.selectedOptions, (option) => option.value) : e.target.value })}>
           {!multiple && <option value="">Selecciona…</option>}{(data[relation] ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
         </select> : type === "textarea" ? <textarea className="border p-2" value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} required /> : <input className="border p-2" type={type} min={type === "number" ? 0 : undefined} value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} required />}
       </label>)}
-      <div className="flex gap-2 sm:col-span-2"><button className="rounded bg-green-200 px-3 py-2" disabled={busy}>{busy ? "Guardando…" : editing ? "Guardar cambios" : "Crear"}</button>{editing && <button type="button" onClick={() => { setEditing(null); setForm(empty(config)); }}>Cancelar edición</button>}</div>
+      <div className="form-actions"><button disabled={busy}>{busy ? "Guardando…" : editing ? "Guardar cambios" : "Crear"}</button>{editing && <button className="button-quiet" type="button" onClick={() => { setEditing(null); setForm(empty(config)); }}>Cancelar edición</button>}</div>
     </form>
-    <section><h3>{config.title} existentes</h3><ul className="divide-y">{(data[catalog] ?? []).map((row) => <li className="flex items-center justify-between gap-3 py-2" key={row.id}><span>{row.name} <small>(ID {row.id})</small></span><span className="flex gap-2"><button onClick={() => startEdit(row)}>Editar</button><button className="text-red-700" onClick={() => remove(row)}>Eliminar</button></span></li>)}</ul></section>
+    <section className="section-card catalog-list"><h3>{config.title} existentes</h3><ul>{(data[catalog] ?? []).map((row) => <li key={row.id}><span>{row.name} <small>ID {row.id}</small></span><span className="row-actions"><button className="button-secondary" onClick={() => startEdit(row)}>Editar</button><button className="button-danger" onClick={() => remove(row)}>Eliminar</button></span></li>)}</ul></section>
   </main>;
 }

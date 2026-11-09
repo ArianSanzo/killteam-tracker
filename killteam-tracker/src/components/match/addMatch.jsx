@@ -132,7 +132,7 @@ const AddMatch = ({ teams = [], onMatchAdded }) => {
     const teamOperatives = selectedTeam?.operatives ?? [];
 
     return (
-      <fieldset key={sideIndex}>
+      <fieldset className="side-picker" key={sideIndex}>
         <legend>Equipo {sideIndex + 1}</legend>
 
         <label htmlFor={`team-${sideIndex}`}>Elegir equipo</label>
@@ -164,8 +164,8 @@ const AddMatch = ({ teams = [], onMatchAdded }) => {
         </select>
 
         {side.teamId && (
-          <div>
-            <p>Agrega los operativos que participan:</p>
+          <div className="operative-selection">
+            <p className="muted">Agrega los operativos que participan:</p>
 
             {teamOperatives.length === 0 ? (
               <p>Este equipo no tiene operativos disponibles.</p>
@@ -175,10 +175,11 @@ const AddMatch = ({ teams = [], onMatchAdded }) => {
                 const weapons = operative.weapons ?? [];
 
                 return (
-                  <div key={operative.id}>
+                  <div className="operative-choice" key={operative.id}>
                     <h4>{operative.name}</h4>
 
                     <button
+                      className="button-secondary add-copy-button"
                       type="button"
                       onClick={() =>
                         addOperativeCopy(sideIndex, operative.id)
@@ -188,7 +189,7 @@ const AddMatch = ({ teams = [], onMatchAdded }) => {
                     </button>
 
                     {copies.map((copy, copyIndex) => (
-                      <div key={`${operative.id}-${copyIndex}`}>
+                      <div className="weapon-copy" key={`${operative.id}-${copyIndex}`}>
                         <label htmlFor={`weapon-${sideIndex}-${operative.id}-${copyIndex}`}>
                           Arma de la copia {copyIndex + 1}
                         </label>
@@ -216,6 +217,7 @@ const AddMatch = ({ teams = [], onMatchAdded }) => {
 
                         <button
                           type="button"
+                          className="button-quiet"
                           onClick={() =>
                             removeOperativeCopy(
                               sideIndex,
@@ -255,32 +257,28 @@ const AddMatch = ({ teams = [], onMatchAdded }) => {
     });
 
   return (
-    <section>
-      <h2>Crear partida</h2>
+    <section className="match-setup">
+      <span className="eyebrow">Preparación de escuadras</span>
+      <h2 className="page-title">Crear partida</h2>
+      <p className="muted">Elige dos equipos, añade sus operativos y asigna un arma a cada copia.</p>
 
-      <form onSubmit={handleSubmit}>
+      <form className="match-setup-form" onSubmit={handleSubmit}>
         {submitError && <p role="alert">{submitError}</p>}
         {saved && <p role="status">Partida creada correctamente.</p>}
 
-        <label htmlFor="match-name">Nombre de la partida</label>
-        <input
-          id="match-name"
-          name="name"
-          type="text"
-          placeholder="Nombre"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          required
-        />
+        <div className="match-name-field"><label htmlFor="match-name">Nombre de la partida</label>
+          <input id="match-name" name="name" type="text" placeholder="Ej.: Mántifex vs Marines" value={name} onChange={(event) => setName(event.target.value)} required />
+        </div>
 
         {sides.map(renderSide)}
 
-        <div>
+        <div className="match-actions">
           <button type="submit" disabled={!canSubmit || saving || saved}>
             {saving ? "Creando…" : saved ? "Partida creada" : "Crear partida"}
           </button>
           <button
             type="button"
+            className="button-quiet"
             onClick={() => navigate("/", { replace: true })}
           >
             Cancelar y volver

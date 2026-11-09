@@ -68,22 +68,22 @@ export default function MatchDetailModule() {
 
   const canEdit = !match.isFinished || ["admin", "superadmin"].includes(user?.roleKey);
   const getPoint = (team, tp) => (team.turning_points ?? team.points_tables ?? team.points ?? []).find((point) => Number(point.turningPoint) === tp) ?? {};
-  return <main>
-    <Link to="/">← Inicio</Link><h2>{match.name}</h2><p>{new Date(match.date).toLocaleString()}</p>
+  return <main className="match-page">
+    <Link to="/history">← Historial</Link><div className="match-heading"><div><span className="eyebrow">{match.isFinished ? "Combate finalizado" : "Combate en curso"}</span><h2>{match.name}</h2><p className="muted">{new Date(match.date).toLocaleString()}</p></div>{!match.isFinished && <span className="status-pill status-active">EN CURSO</span>}</div>
     {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
-    <label>Turning point <select value={turningPoint} onChange={(e) => setTurningPoint(Number(e.target.value))}>{[1,2,3,4].map((tp) => <option key={tp}>{tp}</option>)}</select></label>
-    <div className="grid gap-4 md:grid-cols-2">{(match.game_teams ?? []).map((team) => {
+    <label className="tp-picker">Turning point <select value={turningPoint} onChange={(e) => setTurningPoint(Number(e.target.value))}>{[1,2,3,4].map((tp) => <option key={tp}>{tp}</option>)}</select></label>
+    <div className="team-grid">{(match.game_teams ?? []).map((team) => {
       const point = getPoint(team, turningPoint);
-      return <section className="rounded border p-4" key={team.id}>
+      return <section className="section-card team-panel" key={team.id}>
         <h3>{team.team?.name ?? `Equipo ${team.teamId}`}</h3>
-        <p>Puntaje TP {turningPoint}: {point.critOp ?? 0} críticos · {point.tacOp ?? 0} tácticos · {point.killOp ?? 0} bajas</p>
-        {canEdit && <><div className="flex flex-wrap gap-2">{pointFields.map((field) => <label key={field}>{field}<input className="w-20 border p-1" type="number" min="0" value={scores[team.id]?.[field] ?? point[field] ?? 0} onChange={(e) => setScores((old) => ({ ...old, [team.id]: { ...(old[team.id] ?? {}), [field]: e.target.value } }))}/></label>)}</div><button className="my-2 rounded bg-green-200 px-3 py-1" onClick={() => saveScore(team.id)}>Guardar puntaje</button></>}
-        {(team.game_operatives ?? []).map((operative) => <article className="my-3 rounded bg-slate-50 p-3" key={operative.id}>
-          <strong>{operative.operative?.name} #{operative.number}</strong><p>Arma: {operative.weapon?.name}</p>
-          <label>Heridas <input className="ml-2 w-20 border p-1" type="number" min="0" max={Number(operative.operative?.wounds ?? operative.wounds)} value={woundDrafts[operative.id] ?? operative.wounds} disabled={!canEdit} onChange={(e) => setWoundDrafts((drafts) => ({ ...drafts, [operative.id]: e.target.value }))} onBlur={(e) => { if (String(e.target.value) !== String(operative.wounds)) updateWounds(team.id, operative.id, e.target.value); }}/> / {operative.operative?.wounds}</label>
-        </article>)}
+        <p className="score-summary">TP {turningPoint} <strong>{point.critOp ?? 0}</strong> crit · <strong>{point.tacOp ?? 0}</strong> tac · <strong>{point.killOp ?? 0}</strong> bajas</p>
+        {canEdit && <div className="score-editor"><div className="score-fields">{pointFields.map((field, index) => <label key={field}>{["Críticos", "Tácticos", "Bajas"][index]}<input type="number" min="0" value={scores[team.id]?.[field] ?? point[field] ?? 0} onChange={(e) => setScores((old) => ({ ...old, [team.id]: { ...(old[team.id] ?? {}), [field]: e.target.value } }))}/></label>)}</div><button onClick={() => saveScore(team.id)}>Guardar puntaje</button></div>}
+        <div className="operative-stack">{(team.game_operatives ?? []).map((operative) => <article className="operative-card" key={operative.id}>
+          <div className="operative-heading"><div><strong>{operative.operative?.name} <span className="operative-number">#{operative.number}</span></strong><p className="muted">{operative.weapon?.name}</p></div><span className="wound-count">{woundDrafts[operative.id] ?? operative.wounds}<small> / {operative.operative?.wounds} PV</small></span></div>
+          <label className="wound-editor">Heridas actuales <input type="number" min="0" max={Number(operative.operative?.wounds ?? operative.wounds)} value={woundDrafts[operative.id] ?? operative.wounds} disabled={!canEdit} onChange={(e) => setWoundDrafts((drafts) => ({ ...drafts, [operative.id]: e.target.value }))} onBlur={(e) => { if (String(e.target.value) !== String(operative.wounds)) updateWounds(team.id, operative.id, e.target.value); }}/></label>
+        </article>)}</div>
       </section>;
     })}</div>
-    {!match.isFinished && <button className="mt-4 rounded bg-red-200 px-4 py-2" onClick={finish}>Finalizar partida</button>}
+    {!match.isFinished && <button className="button-danger finish-button" onClick={finish}>Finalizar partida</button>}
   </main>;
 }

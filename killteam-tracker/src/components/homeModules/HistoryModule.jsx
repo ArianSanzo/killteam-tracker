@@ -7,10 +7,12 @@ export default function HistoryModule() {
   const [error, setError] = useState("");
   useEffect(() => { apiJson("/matches").then(setMatches).catch((err) => setError(err.message)); }, []);
   if (error) return <p role="alert">{error}</p>;
-  return <main><Link to="/">← Inicio</Link><h2>Historial de partidas</h2>
-    {matches.length === 0 ? <p>Aún no hay partidas.</p> : <ul className="grid gap-3 md:grid-cols-2">{matches.map((match) => <li className="rounded border p-4" key={match.id}>
-      <h3>{match.name}</h3><p>{new Date(match.date).toLocaleString()}</p><p>{match.game_teams?.map((team) => team.team?.name ?? `Equipo ${team.teamId}`).join(" vs ")}</p><p>{match.isFinished ? "Finalizada" : "En curso"}{match.userId ? ` · Usuario ${match.userId}` : ""}</p>
-      <Link className="underline" to={`/matches/${match.id}`}>{match.isFinished ? "Ver partida" : "Abrir partida"}</Link>
+  return <main><span className="eyebrow">Registros</span><h2 className="page-title">Historial de partidas</h2>
+    <p className="muted">Tus combates recientes y sus estados.</p>
+    {matches.length === 0 ? <section className="section-card empty-state"><span className="action-icon" aria-hidden="true">▤</span><h3>Aún no hay partidas</h3><p className="muted">Cuando registres un combate, aparecerá aquí.</p><Link className="primary-button" to="/addMatch">Crear una partida</Link></section> : <ul className="match-grid">{matches.map((match) => <li className="match-card" key={match.id}>
+      <div className="match-card-top"><span className={`status-pill ${match.isFinished ? "status-finished" : "status-active"}`}>{match.isFinished ? "FINALIZADA" : "EN CURSO"}</span><small className="muted">{new Date(match.date).toLocaleDateString()}</small></div>
+      <h3>{match.name}</h3><p className="match-versus">{match.game_teams?.map((team) => team.team?.name ?? `Equipo ${team.teamId}`).join(" vs ")}</p><p>{new Date(match.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}{match.userId ? ` · Usuario ${match.userId}` : ""}</p>
+      <Link className="primary-button history-action" to={`/matches/${match.id}`}>{match.isFinished ? "Ver partida" : "Abrir partida"}<span aria-hidden="true">→</span></Link>
     </li>)}</ul>}
   </main>;
 }
