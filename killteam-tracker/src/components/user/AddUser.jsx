@@ -1,35 +1,78 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
-const emptyForm = { name: "", email: "", password: "", roleId: "" };
-
-export default function AddUser({ onUserAdded }) {
-  const [form, setForm] = useState(emptyForm);
+const AddUser = ({ onUserAdded }) => {
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = ({ target: { name, value } }) => {
     setForm((current) => ({ ...current, [name]: value }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    onUserAdded({ ...form, roleId: Number(form.roleId) });
-    setForm(emptyForm);
+    setError("");
+    setSaving(true);
+    try {
+      await onUserAdded(form);
+      navigate("/", { replace: true });
+    } catch (requestError) {
+      setError(requestError.message || "No se pudo crear la cuenta.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <section>
-      <h2>Registrarse</h2>
-      <form onSubmit={handleSubmit}>
-        <input className="border border-gray-300 rounded-lg px-3 py-2 m-2" name="name" type="text" placeholder="Nombre" value={form.name} onChange={handleChange} required />
-        <input className="border border-gray-300 rounded-lg px-3 py-2 m-2" name="email" type="email" placeholder="Correo" value={form.email} onChange={handleChange} required />
-        <input className="border border-gray-300 rounded-lg px-3 py-2 m-2" name="password" type="password" placeholder="Contraseña" value={form.password} onChange={handleChange} required />
-        <input className="border border-gray-300 rounded-lg px-3 py-2 m-2" name="roleId" type="number" placeholder="ID del rol" value={form.roleId} onChange={handleChange} min="1" required />
-        <div className="flex gap-2">
-          <button type="submit" className="bg-green-300">Registrarse</button>
-          <button type="button" className="bg-red-300" onClick={() => navigate("/home", { replace: true })}>Cancelar operación/volver</button>
-        </div>
-      </form>
-    </section>
+    <main className="auth-page">
+      <section className="auth-card">
+        <h1>Crear cuenta</h1>
+        <form onSubmit={handleSubmit}>
+          <label htmlFor="register-name">Nombre</label>
+          <input
+            id="register-name"
+            name="name"
+            autoComplete="name"
+            value={form.name}
+            onChange={handleChange}
+            required
+          />
+
+          <label htmlFor="register-email">Correo</label>
+          <input
+            id="register-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+          />
+
+          <label htmlFor="register-password">Contraseña</label>
+          <input
+            id="register-password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            value={form.password}
+            onChange={handleChange}
+            required
+          />
+
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <button type="submit" disabled={saving}>
+            {saving ? "Creando cuenta…" : "Registrarme"}
+          </button>
+        </form>
+        <p>¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link></p>
+      </section>
+    </main>
   );
-}
+};
+
+export default AddUser;
+
