@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
 import AddMatch from "../match/addMatch";
-
-const API_URL = "http://localhost:3000";
-const TEMP_USER_ID = 1;
+import { apiJson } from "../../api/client";
 
 const AddMatchModule = () => {
   const [teams, setTeams] = useState([]);
@@ -11,19 +8,10 @@ const AddMatchModule = () => {
   const [error, setError] = useState("");
 
   const handleMatchAdded = async (matchData) => {
-    const response = await fetch(`${API_URL}/matchs`, {
+    return apiJson("/matches", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...matchData, userId: TEMP_USER_ID }),
+      body: JSON.stringify(matchData),
     });
-
-    const result = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-      throw new Error(result.message || "No se pudo crear la partida.");
-    }
-
-    return result;
   };
 
   useEffect(() => {
@@ -31,18 +19,9 @@ const AddMatchModule = () => {
 
     async function loadData() {
       try {
-        const [teamsResponse, operativesResponse] = await Promise.all([
-          fetch(`${API_URL}/team`),
-          fetch(`${API_URL}/operatives`),
-        ]);
-
-        if (!teamsResponse.ok || !operativesResponse.ok) {
-          throw new Error("No se pudieron cargar equipos y operativos.");
-        }
-
         const [teamsData, operativesData] = await Promise.all([
-          teamsResponse.json(),
-          operativesResponse.json(),
+          apiJson("/team", { authenticated: false }),
+          apiJson("/operatives", { authenticated: false }),
         ]);
 
         const teamsWithOperatives = teamsData.map((team) => ({
