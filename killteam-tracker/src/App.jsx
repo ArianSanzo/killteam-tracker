@@ -6,6 +6,7 @@ import { GuestOnly, RequireAuth } from "./auth/RouteGuards";
 import Home from "./pages/Home";
 import Login from "./components/Login";
 import AddUser from "./components/user/AddUser";
+import { ThemeProvider } from "./theme/ThemeContext";
 
 function AppRoutes() {
     const { register } = useAuth();
@@ -27,9 +28,11 @@ function AppRoutes() {
 function App() {
     return (
         <BrowserRouter>
-            <AuthProvider>
-                <AppRoutes />
-            </AuthProvider>
+            <ThemeProvider>
+                <AuthProvider>
+                    <AppRoutes />
+                </AuthProvider>
+            </ThemeProvider>
         </BrowserRouter>
     );
 }

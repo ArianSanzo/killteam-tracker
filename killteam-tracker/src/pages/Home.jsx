@@ -7,6 +7,7 @@ import HistoryModule from "../components/homeModules/HistoryModule";
 import AdminCatalogModule from "../components/homeModules/AdminCatalogModule";
 import AdminUsersModule from "../components/homeModules/AdminUsersModule";
 import { RequireRole } from "../auth/RouteGuards";
+import ThemeToggle from "../theme/ThemeToggle";
 const Home = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
@@ -20,6 +21,7 @@ const Home = () => {
                 </Link>
                 <div className="header-account">
                     <span className="account-name">{user?.name} · {user?.role}</span>
+                    <ThemeToggle />
                     <button className="button-quiet icon-button" type="button" onClick={() => { logout(); navigate("/login", { replace: true }); }}>Salir</button>
                 </div>
             </header>

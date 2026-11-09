@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
+import ThemeToggle from "../../theme/ThemeToggle";
 
 const AddUser = ({ onUserAdded }) => {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -28,6 +29,7 @@ const AddUser = ({ onUserAdded }) => {
   return (
     <main className="auth-page">
       <section className="auth-card">
+        <div className="auth-theme-toggle"><ThemeToggle /></div>
         <h1>Crear cuenta</h1>
         <form onSubmit={handleSubmit}>
           <label htmlFor="register-name">Nombre</label>

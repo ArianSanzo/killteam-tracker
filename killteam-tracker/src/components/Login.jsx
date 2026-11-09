@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../auth/useAuth";
+import ThemeToggle from "../theme/ThemeToggle";
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -28,6 +29,7 @@ const Login = () => {
     return (
         <main className="auth-page">
             <section className="auth-card">
+        <div className="auth-theme-toggle"><ThemeToggle /></div>
                 <h1>Iniciar sesión</h1>
                 <form onSubmit={handleSubmit}>
                     <label htmlFor="login-email">Correo</label>
