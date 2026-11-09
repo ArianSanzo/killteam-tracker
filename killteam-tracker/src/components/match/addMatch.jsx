@@ -14,7 +14,6 @@ const AddMatch = ({ teams = [], onMatchAdded }) => {
   ]);
   const [saving, setSaving] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [saved, setSaved] = useState(false);
   const navigate = useNavigate();
 
   const updateTeam = (sideIndex, teamId) => {
@@ -102,7 +101,7 @@ const AddMatch = ({ teams = [], onMatchAdded }) => {
     setSubmitError("");
 
     try {
-      await onMatchAdded({
+      const result = await onMatchAdded({
         name: name.trim(),
         date: new Date().toISOString(),
         teams: sides.map((side) => ({
@@ -117,7 +116,14 @@ const AddMatch = ({ teams = [], onMatchAdded }) => {
         })),
       });
 
-      setSaved(true);
+      const createdMatchId =
+        result?.newMatch?.id ?? result?.match?.id ?? result?.id;
+
+      if (!createdMatchId) {
+        throw new Error("La partida se creó, pero el servidor no devolvió su identificador.");
+      }
+
+      navigate(`/matches/${createdMatchId}`, { replace: true });
     } catch (err) {
       setSubmitError(err.message || "No se pudo crear la partida.");
     } finally {
@@ -264,7 +270,6 @@ const AddMatch = ({ teams = [], onMatchAdded }) => {
 
       <form className="match-setup-form" onSubmit={handleSubmit}>
         {submitError && <p role="alert">{submitError}</p>}
-        {saved && <p role="status">Partida creada correctamente.</p>}
 
         <div className="match-name-field"><label htmlFor="match-name">Nombre de la partida</label>
           <input id="match-name" name="name" type="text" placeholder="Ej.: Mántifex vs Marines" value={name} onChange={(event) => setName(event.target.value)} required />
@@ -273,8 +278,8 @@ const AddMatch = ({ teams = [], onMatchAdded }) => {
         {sides.map(renderSide)}
 
         <div className="match-actions">
-          <button type="submit" disabled={!canSubmit || saving || saved}>
-            {saving ? "Creando…" : saved ? "Partida creada" : "Crear partida"}
+          <button type="submit" disabled={!canSubmit || saving}>
+            {saving ? "Creando…" : "Crear partida"}
           </button>
           <button
             type="button"

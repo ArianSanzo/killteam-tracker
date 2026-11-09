@@ -69,7 +69,7 @@ export default function AdminCatalogModule() {
     <label>Tipo de contenido <select className="ml-2 border p-2" value={catalog} onChange={(e) => { setCatalog(e.target.value); setForm(empty(resources[e.target.value])); setEditing(null); }}>{Object.entries(resources).map(([key, value]) => <option key={key} value={key}>{value.title}</option>)}</select></label>
     <form className="section-card catalog-form" onSubmit={submit}><h3>{editing ? "Editar" : "Crear"}: {config.title.slice(0, -1)}</h3>
       {config.fields.map(({ key, label, type = "text", relation, multiple }) => <label key={key} className="grid gap-1">{label}
-        {relation ? <select className="border p-2" multiple={multiple} required={!multiple} value={form[key]} onChange={(e) => setForm({ ...form, [key]: multiple ? Array.from(e.target.selectedOptions, (option) => option.value) : e.target.value })}>
+        {relation ? <select className="border p-2" multiple={multiple} required={!multiple || (catalog === "operatives" && key === "weaponIds")} value={form[key]} onChange={(e) => setForm({ ...form, [key]: multiple ? Array.from(e.target.selectedOptions, (option) => option.value) : e.target.value })}>
           {!multiple && <option value="">Selecciona…</option>}{(data[relation] ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
         </select> : type === "textarea" ? <textarea className="border p-2" value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} required /> : <input className="border p-2" type={type} min={type === "number" ? 0 : undefined} value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} required />}
       </label>)}
