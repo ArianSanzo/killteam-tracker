@@ -1,16 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
-const createEmptySide = () => ({
-  teamId: "",
-  operatives: {},
-});
 
 const AddMatch = ({ teams = [], onMatchAdded }) => {
   const [name, setName] = useState("");
   const [sides, setSides] = useState([
-    createEmptySide(),
-    createEmptySide(),
+    {teamId: "", operatives: {}},
+    {teamId: "", operatives: {}}
   ]);
   const [saving, setSaving] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -29,7 +25,9 @@ const AddMatch = ({ teams = [], onMatchAdded }) => {
   const addOperativeCopy = (sideIndex, operativeId) => {
     setSides((current) =>
       current.map((side, index) => {
-        if (index !== sideIndex) return side;
+        if (index !== sideIndex){
+          return side;
+        } 
 
         const copies = side.operatives[operativeId] ?? [];
 
@@ -47,7 +45,9 @@ const AddMatch = ({ teams = [], onMatchAdded }) => {
   const removeOperativeCopy = (sideIndex, operativeId, copyIndex) => {
     setSides((current) =>
       current.map((side, index) => {
-        if (index !== sideIndex) return side;
+        if (index !== sideIndex) {
+          return side;
+        } 
 
         const copies = [...(side.operatives[operativeId] ?? [])];
         copies.splice(copyIndex, 1);
@@ -272,21 +272,27 @@ const AddMatch = ({ teams = [], onMatchAdded }) => {
         {submitError && <p role="alert">{submitError}</p>}
 
         <div className="match-name-field"><label htmlFor="match-name">Nombre de la partida</label>
-          <input id="match-name" name="name" type="text" placeholder="Ej.: Mántifex vs Marines" value={name} onChange={(event) => setName(event.target.value)} required />
+          <input id="match-name" 
+          name="name" 
+          type="text" 
+          placeholder="Ej.: Mántifex vs Marines" 
+          value={name} 
+          onChange={(e) => setName(e.target.value)} 
+          required />
         </div>
 
         {sides.map(renderSide)}
 
         <div className="match-actions">
           <button type="submit" disabled={!canSubmit || saving}>
-            {saving ? "Creando…" : "Crear partida"}
+            {saving ? "Creando…" : "Crear"}
           </button>
           <button
             type="button"
             className="button-quiet"
             onClick={() => navigate("/", { replace: true })}
           >
-            Cancelar y volver
+            Cancelar
           </button>
         </div>
       </form>

@@ -12,8 +12,8 @@ const AddUser = ({ onUserAdded }) => {
     setForm((current) => ({ ...current, [name]: value }));
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setError("");
     setSaving(true);
     try {
@@ -70,7 +70,7 @@ const AddUser = ({ onUserAdded }) => {
             {saving ? "Creando cuenta…" : "Registrarme"}
           </button>
         </form>
-        <p>¿Ya tienes cuenta? <button className="auth-link" type="button" onClick={() => navigate("/login")}>Inicia sesión</button></p>
+        <p>¿Tenés una cuenta? <button className="auth-link" type="button" onClick={() => navigate("/login")}>Inicia sesión</button></p>
       </section>
     </main>
   );
