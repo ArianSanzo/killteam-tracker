@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import AddMatch from "../match/addMatch";
-import { apiJson } from "../../api/client";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const TOKEN_KEY = "killteam-tracker-token";
 
 const AddMatchModule = () => {
   const [teams, setTeams] = useState([]);
@@ -8,10 +10,20 @@ const AddMatchModule = () => {
   const [error, setError] = useState("");
 
   const handleMatchAdded = async (matchData) => {
-    return apiJson("/matches", {
+    const response = await fetch(`${API_URL}/matches`, {
       method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` },
       body: JSON.stringify(matchData),
     });
+    const data = await response.json();
+    if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem(TOKEN_KEY);
+        window.dispatchEvent(new Event("killteam:unauthorized"));
+      }
+      throw new Error(data.message || "No se pudo crear la partida.");
+    }
+    return data;
   };
 
   useEffect(() => {
@@ -19,10 +31,17 @@ const AddMatchModule = () => {
 
     async function loadData() {
       try {
-        const [teamsData, operativesData] = await Promise.all([
-          apiJson("/team", { authenticated: false }),
-          apiJson("/operatives", { authenticated: false }),
+        const [teamsResponse, operativesResponse] = await Promise.all([
+          fetch(`${API_URL}/team`),
+          fetch(`${API_URL}/operatives`),
         ]);
+        const [teamsData, operativesData] = await Promise.all([
+          teamsResponse.json(),
+          operativesResponse.json(),
+        ]);
+        if (!teamsResponse.ok || !operativesResponse.ok) {
+          throw new Error(teamsData.message || operativesData.message || "No se pudieron cargar los equipos y operativos.");
+        }
 
         const teamsWithOperatives = teamsData.map((team) => ({
           ...team,

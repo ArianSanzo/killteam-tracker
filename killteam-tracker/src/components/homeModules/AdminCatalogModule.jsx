@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { apiJson } from "../../api/client";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const TOKEN_KEY = "killteam-tracker-token";
 
 const resources = {
   teams: { title: "Equipos", path: "/team", fields: [{ key: "name", label: "Nombre" }, { key: "logo", label: "URL del logo" }] },
@@ -13,7 +15,11 @@ const validWounds = (value) => typeof value !== "string" || value.trim() !== "" 
 const woundsError = "Las heridas deben ser números enteros iguales o mayores que cero.";
 const fetchCatalogData = async () => {
   const keys = Object.keys(resources);
-  const values = await Promise.all(keys.map((key) => apiJson(resources[key].path, { authenticated: false })));
+  const values = await Promise.all(keys.map((key) => fetch(`${API_URL}${resources[key].path}`)
+    .then((response) => response.json().then((data) => {
+      if (!response.ok) throw new Error(data.message || "No se pudo cargar el catálogo.");
+      return data;
+    }))));
   return Object.fromEntries(keys.map((key, index) => [key, values[index]]));
 };
 
@@ -68,7 +74,19 @@ export default function AdminCatalogModule() {
       else if (relation || type === "number") body[key] = Number(body[key]);
     });
     try {
-      await apiJson(editing ? `${config.path}/${editing}` : config.path, { method: editing ? "PUT" : "POST", body: JSON.stringify(body) });
+      const response = await fetch(`${API_URL}${editing ? `${config.path}/${editing}` : config.path}`, {
+        method: editing ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        const result = await response.json();
+        if (response.status === 401) {
+          localStorage.removeItem(TOKEN_KEY);
+          window.dispatchEvent(new Event("killteam:unauthorized"));
+        }
+        throw new Error(result.message || "No se pudo guardar el elemento.");
+      }
       setForm(empty(config)); setEditing(null); await load();
     } catch (err) { setError(err.message); }
     finally { setBusy(false); }
@@ -76,7 +94,21 @@ export default function AdminCatalogModule() {
 
   const remove = async (row) => {
     if (!window.confirm(`¿Eliminar ${row.name}?`)) return;
-    try { await apiJson(`${config.path}/${row.id}`, { method: "DELETE" }); await load(); }
+    try {
+      const response = await fetch(`${API_URL}${config.path}/${row.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` },
+      });
+      if (!response.ok) {
+        const result = await response.json();
+        if (response.status === 401) {
+          localStorage.removeItem(TOKEN_KEY);
+          window.dispatchEvent(new Event("killteam:unauthorized"));
+        }
+        throw new Error(result.message || "No se pudo eliminar el elemento.");
+      }
+      await load();
+    }
     catch (err) { setError(err.message); }
   };
 

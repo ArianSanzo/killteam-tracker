@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
-import { apiJson } from "../../api/client";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const TOKEN_KEY = "killteam-tracker-token";
 
 const pointFields = ["critOp", "tacOp", "killOp"];
 const getTeamPoint = (team, turningPoint) =>
@@ -22,7 +24,20 @@ const isNonNegativeInteger = (value) =>
   !(typeof value === "string" && value.trim() === "") &&
   Number.isSafeInteger(Number(value)) &&
   Number(value) >= 0;
-const fetchMatch = (matchId) => apiJson(`/matches/${matchId}`);
+const fetchMatch = async (matchId) => {
+  const response = await fetch(`${API_URL}/matches/${matchId}`, {
+    headers: { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` },
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem(TOKEN_KEY);
+      window.dispatchEvent(new Event("killteam:unauthorized"));
+    }
+    throw new Error(data.message || "No se pudo cargar la partida.");
+  }
+  return data;
+};
 
 export default function MatchDetailModule() {
   const { pathname } = useLocation();
@@ -77,10 +92,19 @@ export default function MatchDetailModule() {
 
     setSavingScores((current) => ({ ...current, [scoreKey]: true }));
     try {
-      await apiJson(`/matches/${matchId}/game-teams/${gameTeamId}/turning-points/${turningPoint}`, {
+      const response = await fetch(`${API_URL}/matches/${matchId}/game-teams/${gameTeamId}/turning-points/${turningPoint}`, {
         method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` },
         body: JSON.stringify(Object.fromEntries(pointFields.map((field) => [field, Number(values[field])]))),
       });
+      const data = await response.json();
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem(TOKEN_KEY);
+          window.dispatchEvent(new Event("killteam:unauthorized"));
+        }
+        throw new Error(data.message || "No se pudo guardar el puntaje.");
+      }
       setScores((current) => {
         const next = { ...current };
         delete next[scoreKey];
@@ -111,9 +135,19 @@ export default function MatchDetailModule() {
 
     setSavingWounds((current) => ({ ...current, [woundKey]: true }));
     try {
-      await apiJson(`/matches/${matchId}/game-teams/${gameTeamId}/operatives/${operativeId}/turning-points/${turningPoint}/wounds`, {
-        method: "PATCH", body: JSON.stringify({ wounds: value }),
+      const response = await fetch(`${API_URL}/matches/${matchId}/game-teams/${gameTeamId}/operatives/${operativeId}/turning-points/${turningPoint}/wounds`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` },
+        body: JSON.stringify({ wounds: value }),
       });
+      const data = await response.json();
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem(TOKEN_KEY);
+          window.dispatchEvent(new Event("killteam:unauthorized"));
+        }
+        throw new Error(data.message || "No se pudieron guardar las heridas.");
+      }
       setWoundDrafts((current) => {
         const next = { ...current };
         delete next[woundKey];
@@ -132,7 +166,19 @@ export default function MatchDetailModule() {
   const finish = async () => {
     setError("");
     try {
-      await apiJson(`/matches/${matchId}/finished`, { method: "PATCH", body: JSON.stringify({ isFinished: true }) });
+      const response = await fetch(`${API_URL}/matches/${matchId}/finished`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` },
+        body: JSON.stringify({ isFinished: true }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem(TOKEN_KEY);
+          window.dispatchEvent(new Event("killteam:unauthorized"));
+        }
+        throw new Error(data.message || "No se pudo finalizar la partida.");
+      }
       setScores({});
       setWoundDrafts({});
       setWoundErrors({});

@@ -1,14 +1,32 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../auth/useAuth";
-import { apiJson } from "../../api/client";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const TOKEN_KEY = "killteam-tracker-token";
 
 const OptionsModule = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [matches, setMatches] = useState([]);
     const [error, setError] = useState("");
-    useEffect(() => { apiJson("/matches").then(setMatches).catch((err) => setError(err.message)); }, []);
+    useEffect(() => {
+        fetch(`${API_URL}/matches`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` },
+        })
+            .then((response) => response.json().then((data) => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem(TOKEN_KEY);
+                        window.dispatchEvent(new Event("killteam:unauthorized"));
+                    }
+                    throw new Error(data.message || "No se pudieron cargar las partidas.");
+                }
+                return data;
+            }))
+            .then(setMatches)
+            .catch((err) => setError(err.message));
+    }, []);
     const canAdmin = ["admin", "superadmin"].includes(user.roleKey);
     const ownActive = matches.find((match) => Number(match.userId) === Number(user.id) && !match.isFinished);
     return (

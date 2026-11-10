@@ -1,16 +1,45 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { apiJson } from "../../api/client";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const TOKEN_KEY = "killteam-tracker-token";
 
 export default function HistoryModule() {
   const navigate = useNavigate();
   const [matches, setMatches] = useState([]);
   const [error, setError] = useState("");
-  useEffect(() => { apiJson("/matches").then(setMatches).catch((err) => setError(err.message)); }, []);
+  useEffect(() => {
+    fetch(`${API_URL}/matches`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` },
+    })
+      .then((response) => response.json().then((data) => {
+        if (!response.ok) {
+          if (response.status === 401) {
+            localStorage.removeItem(TOKEN_KEY);
+            window.dispatchEvent(new Event("killteam:unauthorized"));
+          }
+          throw new Error(data.message || "No se pudo cargar el historial.");
+        }
+        return data;
+      }))
+      .then(setMatches)
+      .catch((err) => setError(err.message));
+  }, []);
   const removeMatch = async (match) => {
     setError("");
     try {
-      await apiJson(`/matches/${match.id}`, { method: "DELETE" });
+      const response = await fetch(`${API_URL}/matches/${match.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` },
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        if (response.status === 401) {
+          localStorage.removeItem(TOKEN_KEY);
+          window.dispatchEvent(new Event("killteam:unauthorized"));
+        }
+        throw new Error(data.message || "No se pudo eliminar la partida.");
+      }
       setMatches((current) => current.filter((item) => item.id !== match.id));
     } catch (err) { setError(err.message); }
   };

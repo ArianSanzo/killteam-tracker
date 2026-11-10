@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { apiJson, clearToken, getToken, saveToken } from "../api/client";
 import { AuthContext } from "./context";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const TOKEN_KEY = "killteam-tracker-token";
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
@@ -15,16 +17,23 @@ export function AuthProvider({ children }) {
         window.addEventListener("killteam:unauthorized", handleUnauthorized);
 
         const restoreSession = async () => {
-            if (!getToken()) {
+            const token = localStorage.getItem(TOKEN_KEY);
+            if (!token) {
                 if (active) setLoading(false);
                 return;
             }
 
             try {
-                const currentUser = await apiJson("/auth/me");
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const currentUser = await response.json();
+                if (!response.ok) {
+                    if (response.status === 401) localStorage.removeItem(TOKEN_KEY);
+                    throw new Error(currentUser.message || "No se pudo recuperar la sesión.");
+                }
                 if (active) setUser(currentUser);
             } catch (error) {
-                if (error.status === 401) clearToken();
                 if (active) setUser(null);
             } finally {
                 if (active) setLoading(false);
@@ -39,29 +48,33 @@ export function AuthProvider({ children }) {
     }, []);
 
     const login = async (credentials) => {
-        const result = await apiJson("/auth/login", {
+        const response = await fetch(`${API_URL}/auth/login`, {
             method: "POST",
-            authenticated: false,
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(credentials),
         });
-        saveToken(result.token);
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || "No se pudo iniciar sesión.");
+        localStorage.setItem(TOKEN_KEY, result.token);
         setUser(result.user);
         return result.user;
     };
 
     const register = async (details) => {
-        const result = await apiJson("/auth/register", {
+        const response = await fetch(`${API_URL}/auth/register`, {
             method: "POST",
-            authenticated: false,
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(details),
         });
-        saveToken(result.token);
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || "No se pudo registrar la cuenta.");
+        localStorage.setItem(TOKEN_KEY, result.token);
         setUser(result.user);
         return result.user;
     };
 
     const logout = () => {
-        clearToken();
+        localStorage.removeItem(TOKEN_KEY);
         setUser(null);
     };
 
