@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router";
 import { apiJson } from "../../api/client";
 import { useAuth } from "../../auth/useAuth";
 
@@ -23,9 +23,11 @@ const isNonNegativeInteger = (value) =>
   !(typeof value === "string" && value.trim() === "") &&
   Number.isSafeInteger(Number(value)) &&
   Number(value) >= 0;
+const fetchMatch = (matchId) => apiJson(`/matches/${matchId}`);
 
 export default function MatchDetailModule() {
-  const { matchId } = useParams();
+  const { pathname } = useLocation();
+  const matchId = pathname.match(/^\/matches\/([^/]+)/)?.[1];
   const { user } = useAuth();
   const [match, setMatch] = useState(null);
   const [turningPoint, setTurningPoint] = useState(1);
@@ -36,19 +38,24 @@ export default function MatchDetailModule() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  const load = useCallback(async () => {
-    try {
-      const data = await apiJson(`/matches/${matchId}`);
-      setMatch(data);
-      setError("");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    let active = true;
+    fetchMatch(matchId)
+      .then((data) => {
+        if (!active) return;
+        setMatch(data);
+        setError("");
+      })
+      .catch((err) => { if (active) setError(err.message); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, [matchId]);
 
-  useEffect(() => { load(); }, [load]);
+  const refresh = async () => {
+    const data = await fetchMatch(matchId);
+    setMatch(data);
+    setError("");
+  };
 
   const saveScore = async (gameTeamId) => {
     const scoreKey = `${gameTeamId}:${turningPoint}`;
@@ -79,7 +86,7 @@ export default function MatchDetailModule() {
         return next;
       });
       setMessage("Puntaje guardado y copiado al siguiente turning point.");
-      await load();
+      await refresh();
     } catch (err) { setError(err.message); }
     finally { setSavingScores((current) => ({ ...current, [scoreKey]: false })); }
   };
@@ -108,7 +115,7 @@ export default function MatchDetailModule() {
         return next;
       });
       setMessage(`Heridas del TP ${turningPoint} guardadas y heredadas por los siguientes TP.`);
-      await load();
+      await refresh();
     } catch (err) { setError(err.message); }
   };
 
@@ -117,7 +124,7 @@ export default function MatchDetailModule() {
     try {
       await apiJson(`/matches/${matchId}/finished`, { method: "PATCH", body: JSON.stringify({ isFinished: true }) });
       setMessage("Partida finalizada.");
-      await load();
+      await refresh();
     } catch (err) { setError(err.message); }
   };
 

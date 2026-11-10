@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { apiJson, clearToken, getToken, saveToken } from "../api/client";
 import { AuthContext } from "./context";
 
@@ -8,6 +8,11 @@ export function AuthProvider({ children }) {
 
     useEffect(() => {
         let active = true;
+
+        const handleUnauthorized = () => {
+            if (active) setUser(null);
+        };
+        window.addEventListener("killteam:unauthorized", handleUnauthorized);
 
         const restoreSession = async () => {
             if (!getToken()) {
@@ -29,16 +34,11 @@ export function AuthProvider({ children }) {
         restoreSession();
         return () => {
             active = false;
+            window.removeEventListener("killteam:unauthorized", handleUnauthorized);
         };
     }, []);
 
-    useEffect(() => {
-        const handleUnauthorized = () => setUser(null);
-        window.addEventListener("killteam:unauthorized", handleUnauthorized);
-        return () => window.removeEventListener("killteam:unauthorized", handleUnauthorized);
-    }, []);
-
-    const login = useCallback(async (credentials) => {
+    const login = async (credentials) => {
         const result = await apiJson("/auth/login", {
             method: "POST",
             authenticated: false,
@@ -47,9 +47,9 @@ export function AuthProvider({ children }) {
         saveToken(result.token);
         setUser(result.user);
         return result.user;
-    }, []);
+    };
 
-    const register = useCallback(async (details) => {
+    const register = async (details) => {
         const result = await apiJson("/auth/register", {
             method: "POST",
             authenticated: false,
@@ -58,14 +58,14 @@ export function AuthProvider({ children }) {
         saveToken(result.token);
         setUser(result.user);
         return result.user;
-    }, []);
+    };
 
-    const logout = useCallback(() => {
+    const logout = () => {
         clearToken();
         setUser(null);
-    }, []);
+    };
 
-    const value = useMemo(() => ({ user, loading, login, register, logout }), [user, loading, login, register, logout]);
+    const value = { user, loading, login, register, logout };
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

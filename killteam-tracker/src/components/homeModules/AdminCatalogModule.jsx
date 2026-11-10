@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { apiJson } from "../../api/client";
 
 const resources = {
@@ -9,6 +9,11 @@ const resources = {
   abilities: { title: "Habilidades", path: "/abilities", fields: [{ key: "name", label: "Nombre" }, { key: "description", label: "Descripción", type: "textarea" }] },
 };
 const empty = (resource) => Object.fromEntries(resource.fields.map(({ key }) => [key, ""]));
+const fetchCatalogData = async () => {
+  const keys = Object.keys(resources);
+  const values = await Promise.all(keys.map((key) => apiJson(resources[key].path, { authenticated: false })));
+  return Object.fromEntries(keys.map((key, index) => [key, values[index]]));
+};
 
 export default function AdminCatalogModule() {
   const [catalog, setCatalog] = useState("teams");
@@ -19,14 +24,18 @@ export default function AdminCatalogModule() {
   const [busy, setBusy] = useState(false);
   const config = resources[catalog];
 
-  const load = useCallback(async () => {
-    try {
-      const keys = Object.keys(resources);
-      const values = await Promise.all(keys.map((key) => apiJson(resources[key].path, { authenticated: false })));
-      setData(Object.fromEntries(keys.map((key, index) => [key, values[index]])));
-    } catch (err) { setError(err.message); }
+  const load = async () => {
+    try { setData(await fetchCatalogData()); }
+    catch (err) { setError(err.message); }
+  };
+
+  useEffect(() => {
+    let active = true;
+    fetchCatalogData()
+      .then((catalogData) => { if (active) setData(catalogData); })
+      .catch((err) => { if (active) setError(err.message); });
+    return () => { active = false; };
   }, []);
-  useEffect(() => { load(); }, [load]);
 
   const startEdit = (row) => {
     const initial = empty(config);
@@ -66,12 +75,12 @@ export default function AdminCatalogModule() {
   return <main className="admin-page">
     <span className="eyebrow">Herramientas de administración</span><h2 className="page-title">Catálogos</h2>
     {error && <p role="alert">{error}</p>}
-    <label>Tipo de contenido <select className="ml-2 border p-2" value={catalog} onChange={(e) => { setCatalog(e.target.value); setForm(empty(resources[e.target.value])); setEditing(null); }}>{Object.entries(resources).map(([key, value]) => <option key={key} value={key}>{value.title}</option>)}</select></label>
+    <label>Tipo de contenido <select value={catalog} onChange={(e) => { setCatalog(e.target.value); setForm(empty(resources[e.target.value])); setEditing(null); }}>{Object.entries(resources).map(([key, value]) => <option key={key} value={key}>{value.title}</option>)}</select></label>
     <form className="section-card catalog-form" onSubmit={submit}><h3>{editing ? "Editar" : "Crear"}: {config.title.slice(0, -1)}</h3>
-      {config.fields.map(({ key, label, type = "text", relation, multiple }) => <label key={key} className="grid gap-1">{label}
-        {relation ? <select className="border p-2" multiple={multiple} required={!multiple || (catalog === "operatives" && key === "weaponIds")} value={form[key]} onChange={(e) => setForm({ ...form, [key]: multiple ? Array.from(e.target.selectedOptions, (option) => option.value) : e.target.value })}>
+      {config.fields.map(({ key, label, type = "text", relation, multiple }) => <label key={key}>{label}
+        {relation ? <select multiple={multiple} required={!multiple || (catalog === "operatives" && key === "weaponIds")} value={form[key]} onChange={(e) => setForm({ ...form, [key]: multiple ? Array.from(e.target.selectedOptions, (option) => option.value) : e.target.value })}>
           {!multiple && <option value="">Selecciona…</option>}{(data[relation] ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-        </select> : type === "textarea" ? <textarea className="border p-2" value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} required /> : <input className="border p-2" type={type} min={type === "number" ? 0 : undefined} value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} required />}
+        </select> : type === "textarea" ? <textarea value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} required /> : <input type={type} min={type === "number" ? 0 : undefined} value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} required />}
       </label>)}
       <div className="form-actions"><button disabled={busy}>{busy ? "Guardando…" : editing ? "Guardar cambios" : "Crear"}</button>{editing && <button className="button-quiet" type="button" onClick={() => { setEditing(null); setForm(empty(config)); }}>Cancelar edición</button>}</div>
     </form>
