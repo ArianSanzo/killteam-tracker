@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useAuth } from "../auth/useAuth";
 import ThemeToggle from "../theme/ThemeToggle";
 
@@ -57,7 +57,7 @@ const Login = () => {
                         {saving ? "Ingresando…" : "Ingresar"}
                     </button>
                 </form>
-                <p>¿No tienes cuenta? <Link to="/register">Registrate</Link></p>
+                <p>¿No tienes cuenta? <button className="auth-link" type="button" onClick={() => navigate("/register")}>Registrate</button></p>
             </section>
         </main>
     );

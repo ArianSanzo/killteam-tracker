@@ -1,4 +1,4 @@
-import { Routes, Route, Link, NavLink, useNavigate } from "react-router";
+import { Routes, Route, useNavigate } from "react-router";
 import { useAuth } from "../auth/useAuth";
 import OptionsModule from "../components/homeModules/OptionsModule"
 import AddMatchModule from "../components/homeModules/AddMatchModule"
@@ -15,10 +15,10 @@ const Home = () => {
     return (
         <div className="app-shell">
             <header className="app-header">
-                <Link className="brand" to="/" aria-label="Kill Team Tracker, inicio">
+                <button className="brand" type="button" onClick={() => navigate("/")} aria-label="Kill Team Tracker, inicio">
                     <span className="brand-mark">KT</span>
                     <span><span className="brand-title">KILL TEAM</span><span className="brand-subtitle">Battle tracker</span></span>
-                </Link>
+                </button>
                 <div className="header-account">
                     <span className="account-name">{user?.name} · {user?.role}</span>
                     <ThemeToggle />
@@ -26,11 +26,11 @@ const Home = () => {
                 </div>
             </header>
             <nav className="global-nav" aria-label="Navegación principal">
-                <NavLink to="/" end>Inicio</NavLink>
-                <NavLink to="/addMatch">Nueva partida</NavLink>
-                <NavLink to="/history">Historial</NavLink>
-                {canAdmin && <NavLink to="/admin/catalogs">Catálogos</NavLink>}
-                {user?.roleKey === "superadmin" && <NavLink to="/admin/users">Usuarios</NavLink>}
+                <button className="global-nav-item" type="button" onClick={() => navigate("/")}>Inicio</button>
+                <button className="global-nav-item" type="button" onClick={() => navigate("/addMatch")}>Nueva partida</button>
+                <button className="global-nav-item" type="button" onClick={() => navigate("/history")}>Historial</button>
+                {canAdmin && <button className="global-nav-item" type="button" onClick={() => navigate("/admin/catalogs")}>Catálogos</button>}
+                {user?.roleKey === "superadmin" && <button className="global-nav-item" type="button" onClick={() => navigate("/admin/users")}>Usuarios</button>}
             </nav>
             <div className="page-content">
                 <Routes>

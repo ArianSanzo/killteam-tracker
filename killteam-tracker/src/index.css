@@ -75,16 +75,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .app-shell { margin: 0 auto; max-width: 76rem; min-height: 100vh; padding: 0 1rem 3rem; }
 .app-header { align-items: center; border-bottom: 1px solid var(--line); display: flex; gap: 1rem; justify-content: space-between; min-height: 5rem; }
-.brand { align-items: center; color: var(--text); display: flex; gap: .75rem; text-decoration: none; }
+.brand { align-items: center; background: transparent; border: 0; color: var(--text); cursor: pointer; display: flex; font: inherit; font-weight: inherit; gap: .75rem; min-height: 0; padding: 0; text-align: left; text-shadow: none; }
 .brand-mark { align-items: center; background: var(--accent); border: 1px solid var(--line-strong); border-radius: .75rem; color: var(--accent-ink); display: inline-flex; font-size: .86rem; font-weight: 950; height: 2.65rem; justify-content: center; letter-spacing: -.08em; width: 2.65rem; }
 .brand-title { display: block; font-size: 1rem; font-weight: 850; letter-spacing: .08em; }
 .brand-subtitle, .eyebrow { color: var(--text-muted); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; }
 .header-account { align-items: center; display: flex; gap: .7rem; }
 .account-name { color: var(--text-muted); font-size: .85rem; }
 .global-nav { display: flex; gap: .5rem; overflow-x: auto; padding: .8rem 0; scrollbar-width: none; }
-.global-nav a { border: 1px solid transparent; border-radius: 999px; color: var(--text-muted); flex: 0 0 auto; font-size: .9rem; padding: .62rem .9rem; text-decoration: none; }
-.global-nav a:hover, .global-nav a[aria-current="page"] { background: var(--surface); border-color: var(--line); color: var(--text); }
-.global-nav a[aria-current="page"] { box-shadow: inset 0 -2px var(--heraldry); }
+.global-nav button { background: transparent; border: 1px solid transparent; border-radius: 999px; color: var(--text-muted); cursor: pointer; flex: 0 0 auto; font: inherit; font-size: .9rem; padding: .62rem .9rem; }
+.global-nav button:hover { background: var(--surface); border-color: var(--line); color: var(--text); }
+.global-nav button { font-weight: 400; text-shadow: none; }
 .page-content { padding-top: 1rem; }
 .page-title { font-size: clamp(1.65rem, 5vw, 2.35rem); letter-spacing: -.045em; margin: .2rem 0 1rem; }
 .muted { color: var(--text-muted); }
@@ -95,6 +95,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .action-grid, .match-grid, .team-grid { display: grid; gap: .8rem; }
 .action-card { align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); color: inherit; display: flex; flex-direction: column; gap: .4rem; min-height: 8.5rem; padding: 1rem; text-align: left; text-decoration: none; transition: border-color .16s, transform .16s, background .16s; }
 .action-card:hover { background: var(--surface-raised); border-color: var(--line-strong); transform: translateY(-2px); }
+button.action-card { background: var(--surface); border: 1px solid var(--line); font: inherit; font-weight: 400; min-height: 8.5rem; text-shadow: none; width: 100%; }
+button.action-card:hover { filter: none; }
 .action-card strong { color: var(--text); font-size: 1.03rem; }
 .action-card span { color: var(--text-muted); font-size: .88rem; line-height: 1.45; }
 .action-icon { align-items: center; background: var(--accent-soft); border: 1px solid var(--line); border-radius: .65rem; color: var(--accent); display: inline-flex; font-size: 1.2rem; height: 2.35rem; justify-content: center; width: 2.35rem; }
@@ -143,8 +145,9 @@ ul { list-style: none; margin: 0; padding: 0; }
   .app-header { align-items: center; min-height: 4.3rem; }
   .account-name { display: none; }
   .global-nav { margin: 0 -.85rem; padding: .65rem .85rem; }
-  .global-nav a { font-size: .82rem; padding: .55rem .75rem; }
+  .global-nav button { font-size: .82rem; padding: .55rem .75rem; }
   .action-card { min-height: 6.2rem; }
+  button.action-card { min-height: 6.2rem; }
   .action-icon { height: 2rem; width: 2rem; }
   .match-card .primary-button, .match-card button { width: 100%; }
   fieldset { padding: .85rem; }

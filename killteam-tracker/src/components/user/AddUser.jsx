@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import ThemeToggle from "../../theme/ThemeToggle";
 
 const AddUser = ({ onUserAdded }) => {
@@ -70,7 +70,7 @@ const AddUser = ({ onUserAdded }) => {
             {saving ? "Creando cuenta…" : "Registrarme"}
           </button>
         </form>
-        <p>¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link></p>
+        <p>¿Ya tienes cuenta? <button className="auth-link" type="button" onClick={() => navigate("/login")}>Inicia sesión</button></p>
       </section>
     </main>
   );

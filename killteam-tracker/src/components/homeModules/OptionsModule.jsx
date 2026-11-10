@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { useAuth } from "../../auth/useAuth";
 import { apiJson } from "../../api/client";
 
@@ -22,11 +22,11 @@ const OptionsModule = () => {
             {error && <p role="alert">{error}</p>}
 
             <div className="action-grid" aria-label="Acciones">
-                <Link className="action-card" to="/addMatch"><span className="action-icon" aria-hidden="true">＋</span><strong>Nueva partida</strong><span>Elige dos equipos y sus operativos.</span></Link>
-                {ownActive ? <Link className="action-card" to={`/matches/${ownActive.id}`}><span className="action-icon" aria-hidden="true">▶</span><strong>Continuar partida</strong><span>{ownActive.name}</span></Link> : <Link className="action-card" to="/history"><span className="action-icon" aria-hidden="true">◎</span><strong>Partidas recientes</strong><span>Vuelve a consultar tus registros.</span></Link>}
-                <Link className="action-card" to="/history"><span className="action-icon" aria-hidden="true">▤</span><strong>Historial</strong><span>Revisa partidas anteriores y resultados.</span></Link>
-                {canAdmin && <Link className="action-card" to="/admin/catalogs"><span className="action-icon" aria-hidden="true">⚙</span><strong>Catálogos</strong><span>Gestiona equipos, operativos y reglas.</span></Link>}
-                {user.roleKey === "superadmin" && <Link className="action-card" to="/admin/users"><span className="action-icon" aria-hidden="true">♙</span><strong>Usuarios</strong><span>Administra cuentas y permisos.</span></Link>}
+                <button className="action-card" type="button" onClick={() => navigate("/addMatch")}><span className="action-icon" aria-hidden="true">＋</span><strong>Nueva partida</strong><span>Elige dos equipos y sus operativos.</span></button>
+                {ownActive ? <button className="action-card" type="button" onClick={() => navigate(`/matches/${ownActive.id}`)}><span className="action-icon" aria-hidden="true">▶</span><strong>Continuar partida</strong><span>{ownActive.name}</span></button> : <button className="action-card" type="button" onClick={() => navigate("/history")}><span className="action-icon" aria-hidden="true">◎</span><strong>Partidas recientes</strong><span>Vuelve a consultar tus registros.</span></button>}
+                <button className="action-card" type="button" onClick={() => navigate("/history")}><span className="action-icon" aria-hidden="true">▤</span><strong>Historial</strong><span>Revisa partidas anteriores y resultados.</span></button>
+                {canAdmin && <button className="action-card" type="button" onClick={() => navigate("/admin/catalogs")}><span className="action-icon" aria-hidden="true">⚙</span><strong>Catálogos</strong><span>Gestiona equipos, operativos y reglas.</span></button>}
+                {user.roleKey === "superadmin" && <button className="action-card" type="button" onClick={() => navigate("/admin/users")}><span className="action-icon" aria-hidden="true">♙</span><strong>Usuarios</strong><span>Administra cuentas y permisos.</span></button>}
             </div>
 
             <section aria-labelledby="active-matches-title">

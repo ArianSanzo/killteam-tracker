@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { apiJson } from "../../api/client";
 import { useAuth } from "../../auth/useAuth";
 
@@ -27,6 +27,7 @@ const fetchMatch = (matchId) => apiJson(`/matches/${matchId}`);
 
 export default function MatchDetailModule() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const matchId = pathname.match(/^\/matches\/([^/]+)/)?.[1];
   const { user } = useAuth();
   const [match, setMatch] = useState(null);
@@ -129,12 +130,12 @@ export default function MatchDetailModule() {
   };
 
   if (loading) return <p role="status">Cargando partida…</p>;
-  if (error && !match) return <section><p role="alert">{error}</p><Link to="/">Volver</Link></section>;
+  if (error && !match) return <section><p role="alert">{error}</p><button className="button-quiet" type="button" onClick={() => navigate("/")}>Volver</button></section>;
   if (!match) return null;
 
   const canEdit = !match.isFinished || ["admin", "superadmin"].includes(user?.roleKey);
   return <main className="match-page">
-    <Link to="/history">← Historial</Link><div className="match-heading"><div><span className="eyebrow">{match.isFinished ? "Combate finalizado" : "Combate en curso"}</span><h2>{match.name}</h2><p className="muted">{new Date(match.date).toLocaleString()}</p></div>{!match.isFinished && <span className="status-pill status-active">EN CURSO</span>}</div>
+    <button className="button-quiet" type="button" onClick={() => navigate("/history")}>← Historial</button><div className="match-heading"><div><span className="eyebrow">{match.isFinished ? "Combate finalizado" : "Combate en curso"}</span><h2>{match.name}</h2><p className="muted">{new Date(match.date).toLocaleString()}</p></div>{!match.isFinished && <span className="status-pill status-active">EN CURSO</span>}</div>
     {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
     <label className="tp-picker">Turning point <select value={turningPoint} onChange={(e) => setTurningPoint(Number(e.target.value))}>{[1,2,3,4].map((tp) => <option key={tp}>{tp}</option>)}</select></label>
     <div className="team-grid">{(match.game_teams ?? []).map((team) => {
