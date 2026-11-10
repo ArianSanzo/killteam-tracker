@@ -9,6 +9,8 @@ const resources = {
   abilities: { title: "Habilidades", path: "/abilities", fields: [{ key: "name", label: "Nombre" }, { key: "description", label: "Descripción", type: "textarea" }] },
 };
 const empty = (resource) => Object.fromEntries(resource.fields.map(({ key }) => [key, ""]));
+const validWounds = (value) => typeof value !== "string" || value.trim() !== "" ? Number.isSafeInteger(Number(value)) && Number(value) >= 0 : false;
+const woundsError = "Las heridas deben ser números enteros iguales o mayores que cero.";
 const fetchCatalogData = async () => {
   const keys = Object.keys(resources);
   const values = await Promise.all(keys.map((key) => apiJson(resources[key].path, { authenticated: false })));
@@ -53,7 +55,13 @@ export default function AdminCatalogModule() {
   };
 
   const submit = async (event) => {
-    event.preventDefault(); setBusy(true); setError("");
+    event.preventDefault();
+    setError("");
+    if (catalog === "operatives" && !validWounds(form.wounds)) {
+      setError(woundsError);
+      return;
+    }
+    setBusy(true);
     const body = { ...form };
     config.fields.forEach(({ key, relation, multiple, type }) => {
       if (relation && multiple) body[key] = (body[key] ?? []).map(Number);
@@ -80,7 +88,7 @@ export default function AdminCatalogModule() {
       {config.fields.map(({ key, label, type = "text", relation, multiple }) => <label key={key}>{label}
         {relation ? <select multiple={multiple} required={!multiple || (catalog === "operatives" && key === "weaponIds")} value={form[key]} onChange={(e) => setForm({ ...form, [key]: multiple ? Array.from(e.target.selectedOptions, (option) => option.value) : e.target.value })}>
           {!multiple && <option value="">Selecciona…</option>}{(data[relation] ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-        </select> : type === "textarea" ? <textarea value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} required /> : <input type={type} min={type === "number" ? 0 : undefined} value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} required />}
+        </select> : type === "textarea" ? <textarea value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} required /> : <input type={type} min={type === "number" && key !== "wounds" ? 0 : undefined} step={key === "wounds" ? "any" : undefined} value={form[key]} onChange={(e) => { setForm({ ...form, [key]: e.target.value }); if (key === "wounds") setError(""); }} required={key !== "wounds"} />}
       </label>)}
       <div className="form-actions"><button disabled={busy}>{busy ? "Guardando…" : editing ? "Guardar cambios" : "Crear"}</button>{editing && <button className="button-quiet" type="button" onClick={() => { setEditing(null); setForm(empty(config)); }}>Cancelar edición</button>}</div>
     </form>

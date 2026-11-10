@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { apiJson } from "../../api/client";
-import { useAuth } from "../../auth/useAuth";
 
 const pointFields = ["critOp", "tacOp", "killOp"];
 const getTeamPoint = (team, turningPoint) =>
@@ -29,11 +28,12 @@ export default function MatchDetailModule() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const matchId = pathname.match(/^\/matches\/([^/]+)/)?.[1];
-  const { user } = useAuth();
   const [match, setMatch] = useState(null);
   const [turningPoint, setTurningPoint] = useState(1);
   const [scores, setScores] = useState({});
   const [woundDrafts, setWoundDrafts] = useState({});
+  const [woundErrors, setWoundErrors] = useState({});
+  const [savingWounds, setSavingWounds] = useState({});
   const [savingScores, setSavingScores] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -93,19 +93,23 @@ export default function MatchDetailModule() {
   };
 
   const updateWounds = async (gameTeamId, operativeId, wounds) => {
-    setError("");
+    const woundKey = `${operativeId}:${turningPoint}`;
+    setWoundErrors((current) => ({ ...current, [woundKey]: "" }));
     const value = Number(wounds);
     const operative = match.game_teams
       .find((team) => team.id === gameTeamId)
       ?.game_operatives.find((item) => item.id === operativeId);
     const maximum = Number(operative?.operative?.wounds ?? operative?.wounds);
-    const woundKey = `${operativeId}:${turningPoint}`;
-
-    if (!isNonNegativeInteger(wounds) || value > maximum) {
-      setError(`Las heridas deben ser un entero entre 0 y ${maximum}.`);
+    if (!isNonNegativeInteger(wounds)) {
+      setWoundErrors((current) => ({ ...current, [woundKey]: "Las heridas deben ser números enteros iguales o mayores que cero." }));
+      return;
+    }
+    if (value > maximum) {
+      setWoundErrors((current) => ({ ...current, [woundKey]: `Las heridas no pueden superar el máximo de ${maximum}.` }));
       return;
     }
 
+    setSavingWounds((current) => ({ ...current, [woundKey]: true }));
     try {
       await apiJson(`/matches/${matchId}/game-teams/${gameTeamId}/operatives/${operativeId}/turning-points/${turningPoint}/wounds`, {
         method: "PATCH", body: JSON.stringify({ wounds: value }),
@@ -115,15 +119,23 @@ export default function MatchDetailModule() {
         delete next[woundKey];
         return next;
       });
+      setWoundErrors((current) => ({ ...current, [woundKey]: "" }));
       setMessage(`Heridas del TP ${turningPoint} guardadas y heredadas por los siguientes TP.`);
       await refresh();
-    } catch (err) { setError(err.message); }
+    } catch (err) {
+      setWoundErrors((current) => ({ ...current, [woundKey]: err.message }));
+    } finally {
+      setSavingWounds((current) => ({ ...current, [woundKey]: false }));
+    }
   };
 
   const finish = async () => {
     setError("");
     try {
       await apiJson(`/matches/${matchId}/finished`, { method: "PATCH", body: JSON.stringify({ isFinished: true }) });
+      setScores({});
+      setWoundDrafts({});
+      setWoundErrors({});
       setMessage("Partida finalizada.");
       await refresh();
     } catch (err) { setError(err.message); }
@@ -133,7 +145,7 @@ export default function MatchDetailModule() {
   if (error && !match) return <section><p role="alert">{error}</p><button className="button-quiet" type="button" onClick={() => navigate("/")}>Volver</button></section>;
   if (!match) return null;
 
-  const canEdit = !match.isFinished || ["admin", "superadmin"].includes(user?.roleKey);
+  const canEdit = !match.isFinished;
   return <main className="match-page">
     <button className="button-quiet" type="button" onClick={() => navigate("/history")}>← Historial</button><div className="match-heading"><div><span className="eyebrow">{match.isFinished ? "Combate finalizado" : "Combate en curso"}</span><h2>{match.name}</h2><p className="muted">{new Date(match.date).toLocaleString()}</p></div>{!match.isFinished && <span className="status-pill status-active">EN CURSO</span>}</div>
     {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
@@ -144,10 +156,12 @@ export default function MatchDetailModule() {
       return <section className="section-card team-panel" key={team.id}>
         <h3>{team.team?.name ?? `Equipo ${team.teamId}`}</h3>
         <p className="score-summary">TP {turningPoint} <strong>{point.critOp ?? 0}</strong> crit · <strong>{point.tacOp ?? 0}</strong> tac · <strong>{point.killOp ?? 0}</strong> bajas</p>
-        {canEdit && <div className="score-editor"><div className="score-fields">{pointFields.map((field, index) => <label key={field}>{["Críticos", "Tácticos", "Bajas"][index]}<input type="number" min="0" step="1" inputMode="numeric" value={scores[scoreKey]?.[field] ?? point[field] ?? 0} onChange={(e) => setScores((old) => ({ ...old, [scoreKey]: { ...(old[scoreKey] ?? {}), [field]: e.target.value } }))}/></label>)}</div><button disabled={savingScores[scoreKey]} onClick={() => saveScore(team.id)}>{savingScores[scoreKey] ? "Guardando…" : "Guardar puntaje"}</button></div>}
+        {canEdit && <div className="score-editor"><div className="score-fields">{pointFields.map((field, index) => <label key={field}>{["Críticos", "Tácticos", "Bajas"][index]}<input type="number" min="0" step="1" inputMode="numeric" value={scores[scoreKey]?.[field] ?? point[field] ?? 0} onChange={(e) => setScores((old) => ({ ...old, [scoreKey]: { ...(old[scoreKey] ?? {}), [field]: e.target.value } }))}/></label>)}</div><button disabled={savingScores[scoreKey]} onClick={() => saveScore(team.id)}>{savingScores[scoreKey] ? "Guardando…" : "Guardar turno"}</button></div>}
         <div className="operative-stack">{(team.game_operatives ?? []).map((operative) => <article className="operative-card" key={operative.id}>
           <div className="operative-heading"><div><strong>{operative.operative?.name} <span className="operative-number">#{operative.number}</span></strong><p className="muted">{operative.weapon?.name}</p></div><span className="wound-count">{woundDrafts[`${operative.id}:${turningPoint}`] ?? getOperativeWounds(operative, turningPoint)}<small> / {operative.operative?.wounds} PV</small></span></div>
-          <label className="wound-editor">Heridas actuales <input type="number" min="0" max={Number(operative.operative?.wounds ?? operative.wounds)} step="1" inputMode="numeric" value={woundDrafts[`${operative.id}:${turningPoint}`] ?? getOperativeWounds(operative, turningPoint)} disabled={!canEdit} onChange={(e) => setWoundDrafts((drafts) => ({ ...drafts, [`${operative.id}:${turningPoint}`]: e.target.value }))} onBlur={(e) => { if (Number(e.target.value) !== getOperativeWounds(operative, turningPoint)) updateWounds(team.id, operative.id, e.target.value); }}/></label>
+          <label className="wound-editor">Heridas actuales <input type="number" min="0" max={Number(operative.operative?.wounds ?? operative.wounds)} step="any" inputMode="numeric" value={woundDrafts[`${operative.id}:${turningPoint}`] ?? getOperativeWounds(operative, turningPoint)} disabled={!canEdit} onChange={(e) => { const key = `${operative.id}:${turningPoint}`; setWoundDrafts((drafts) => ({ ...drafts, [key]: e.target.value })); setWoundErrors((current) => ({ ...current, [key]: "" })); }}/></label>
+          {woundErrors[`${operative.id}:${turningPoint}`] && <p role="alert">{woundErrors[`${operative.id}:${turningPoint}`]}</p>}
+          {canEdit && <button type="button" disabled={savingWounds[`${operative.id}:${turningPoint}`]} onClick={() => updateWounds(team.id, operative.id, woundDrafts[`${operative.id}:${turningPoint}`] ?? getOperativeWounds(operative, turningPoint))}>{savingWounds[`${operative.id}:${turningPoint}`] ? "Guardando…" : "Guardar heridas"}</button>}
         </article>)}</div>
       </section>;
     })}</div>
