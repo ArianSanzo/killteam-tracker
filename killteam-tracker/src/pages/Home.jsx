@@ -6,6 +6,10 @@ import MatchDetailModule from "../components/homeModules/MatchDetailModule";
 import HistoryModule from "../components/homeModules/HistoryModule";
 import AdminCatalogModule from "../components/homeModules/AdminCatalogModule";
 import AdminUsersModule from "../components/homeModules/AdminUsersModule";
+import AddOperative from "../components/operative/AddOperative";
+import AddWeapon from "../components/weapon/AddWeapon";
+import AddAbility from "../components/ability/AddAbility";
+import AddRule from "../components/rule/AddRule";
 import { RequireRole } from "../auth/RouteGuards";
 import ThemeToggle from "../theme/ThemeToggle";
 const Home = () => {
@@ -29,7 +33,7 @@ const Home = () => {
                 <button className="global-nav-item" type="button" onClick={() => navigate("/")}>Inicio</button>
                 <button className="global-nav-item" type="button" onClick={() => navigate("/addMatch")}>Nueva partida</button>
                 <button className="global-nav-item" type="button" onClick={() => navigate("/history")}>Historial</button>
-                {canAdmin && <button className="global-nav-item" type="button" onClick={() => navigate("/admin/catalogs")}>Catálogos</button>}
+                {canAdmin && <button className="global-nav-item" type="button" onClick={() => navigate("/admin/catalogs/teams")}>Catálogos</button>}
                 {user?.roleKey === "superadmin" && <button className="global-nav-item" type="button" onClick={() => navigate("/admin/users")}>Usuarios</button>}
             </nav>
             <div className="page-content">
@@ -40,6 +44,11 @@ const Home = () => {
                     <Route path="/history" element={<HistoryModule />} />
                     <Route element={<RequireRole roles={["admin", "superadmin"]} />}>
                         <Route path="/admin/catalogs" element={<AdminCatalogModule />} />
+                        <Route path="/admin/catalogs/teams" element={<AdminCatalogModule />} />
+                        <Route path="/admin/catalogs/operatives" element={<AddOperative />} />
+                        <Route path="/admin/catalogs/weapons" element={<AddWeapon />} />
+                        <Route path="/admin/catalogs/abilities" element={<AddAbility />} />
+                        <Route path="/admin/catalogs/rules" element={<AddRule />} />
                     </Route>
                     <Route element={<RequireRole roles={["superadmin"]} />}>
                         <Route path="/admin/users" element={<AdminUsersModule />} />

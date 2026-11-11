@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
                     throw new Error(currentUser.message || "No se pudo recuperar la sesión.");
                 }
                 if (active) setUser(currentUser);
-            } catch (error) {
+            } catch {
                 if (active) setUser(null);
             } finally {
                 if (active) setLoading(false);

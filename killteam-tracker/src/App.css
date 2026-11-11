@@ -129,6 +129,8 @@
 .finish-button { margin-top: 1.1rem; min-height: 3.1rem; width: 100%; }
 
 .catalog-form { grid-template-columns: 1fr; }
+.catalog-nav { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1rem; }
+.catalog-nav [aria-current="page"] { border-color: var(--line-strong); color: var(--accent); }
 .catalog-form h3 { grid-column: 1 / -1; margin: 0; }
 .catalog-form label { display: grid; gap: .4rem; }
 .catalog-form select[multiple] { min-height: 8rem; }

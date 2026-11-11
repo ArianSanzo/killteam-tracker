@@ -12,8 +12,8 @@ const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         setError("");
         setSaving(true);
         try {
